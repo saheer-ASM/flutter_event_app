@@ -94,6 +94,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) => value == null || value.isEmpty ? 'Please enter name' : null,
                 ),
+                
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _regNumberController,
@@ -104,6 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) => value == null || value.isEmpty ? 'Please enter registration number' : null,
                 ),
+                
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _batchController,
@@ -114,6 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) => value == null || value.isEmpty ? 'Please enter batch' : null,
                 ),
+                
+                
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
@@ -129,6 +133,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+                
+                
+                
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
@@ -147,7 +154,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value.length < 6) return 'Password must be at least 6 characters';
                     return null;
                   },
-                ),
+                ),    
+                
+                
+                
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmPasswordController,
@@ -166,6 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _register,
@@ -177,6 +188,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Text('Register', style: TextStyle(fontSize: 16)),
                 ),
+                
+
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -184,7 +197,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const Text('Already have an account? '),
                     TextButton(
                       onPressed: () => Navigator.of(context).pushReplacement(
-                        // MaterialPageRoute(builder: (_) => const LoginScreen()),
+                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       ),
                       child: const Text('Login'),
                     ),
