@@ -7,6 +7,7 @@ import '../auth/login_screen.dart';
 import 'event_detail_screen.dart';
 import 'registered_events_screen.dart';
 import 'user_profile_screen.dart';
+import 'notifications_screen.dart';
 import '../../widgets/event_card.dart';
 
 class UserDashboard extends StatefulWidget {
@@ -22,6 +23,17 @@ class _UserDashboardState extends State<UserDashboard> {
   final TextEditingController _searchController = TextEditingController();
   List<EventModel> _searchResults = [];
   bool _isSearching = false;
+  final List<String> _categories = [
+    'All',
+    'Technical',
+    'Cultural',
+    'Sports',
+    'Workshop',
+    'Seminar',
+    'Competition',
+    'Other',
+  ];
+  String _selectedCategory = 'All';
 
   @override
   void dispose() {
@@ -40,7 +52,11 @@ class _UserDashboardState extends State<UserDashboard> {
 
     setState(() => _isSearching = true);
     final results = await _firestoreService.searchEvents(query);
-    setState(() => _searchResults = results);
+    final filtered = results.where((event) {
+      if (_selectedCategory == 'All') return true;
+      return event.category == _selectedCategory;
+    }).toList();
+    setState(() => _searchResults = filtered);
   }
 
   Future<void> _logout() async {
@@ -98,6 +114,61 @@ class _UserDashboardState extends State<UserDashboard> {
             onChanged: _searchEvents,
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Categories',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            scrollDirection: Axis.horizontal,
+            itemCount: _categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final category = _categories[index];
+              final bool isSelected = category == _selectedCategory;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedCategory = category;
+                  });
+
+                  if (_isSearching) {
+                    _searchEvents(_searchController.text);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: isSelected
+                        ? Colors.redAccent
+                        : const Color(0xFFF3F4F6),
+                  ),
+                  child: Center(
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.black87,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
         Expanded(
           child: _isSearching
               ? _searchResults.isEmpty
@@ -107,6 +178,7 @@ class _UserDashboardState extends State<UserDashboard> {
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
                         final event = _searchResults[index];
+
                         return EventCard(
                           event: event,
                           onTap: () {
@@ -132,7 +204,11 @@ class _UserDashboardState extends State<UserDashboard> {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     }
 
-                    final events = snapshot.data ?? [];
+                    final allEvents = snapshot.data ?? [];
+                    final events = allEvents.where((event) {
+                      if (_selectedCategory == 'All') return true;
+                      return event.category == _selectedCategory;
+                    }).toList();
 
                     if (events.isEmpty) {
                       return Center(
@@ -195,10 +271,61 @@ class _UserDashboardState extends State<UserDashboard> {
         ][_currentIndex]),
         actions: _currentIndex == 0
             ? [
-                IconButton(
-                  icon: const Icon(Icons.logout),
-                  onPressed: _logout,
-                  tooltip: 'Logout',
+                StreamBuilder<List<EventModel>>(
+                  stream: _firestoreService.getAllEvents(),
+                  builder: (context, snapshot) {
+                    int notificationCount = 0;
+                    if (snapshot.hasData) {
+                      final now = DateTime.now();
+                      for (final event in snapshot.data!) {
+                        if (now.difference(event.createdAt).inHours <= 24 &&
+                            now.isAfter(event.createdAt)) {
+                          notificationCount++;
+                        }
+                      }
+                    }
+
+                    final hasNotifications = notificationCount > 0;
+
+                    return Row(
+                      children: [
+                        IconButton(
+                          icon: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(Icons.notifications_none),
+                              if (hasNotifications)
+                                Positioned(
+                                  right: -1,
+                                  top: -1,
+                                  child: Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.redAccent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const NotificationsScreen(),
+                              ),
+                            );
+                          },
+                          tooltip: 'Notifications',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.logout),
+                          onPressed: _logout,
+                          tooltip: 'Logout',
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ]
             : null,
