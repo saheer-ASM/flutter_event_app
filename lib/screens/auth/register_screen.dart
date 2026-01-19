@@ -1,4 +1,4 @@
-// 2 comments here 
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
@@ -63,11 +63,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       const SnackBar(content: Text('Registration successful!'), backgroundColor: Colors.green),
     );
 
-    /*Navigator.of(context).pushReplacement(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const UserDashboard()),
     );
   }
-*/
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
